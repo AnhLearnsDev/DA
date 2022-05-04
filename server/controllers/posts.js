@@ -5,7 +5,7 @@ export const getPosts = async (req, res) => {
 	const { page } = req.query;
 
 	try {
-		const LIMIT = 2;
+		const LIMIT = 4;
 		const startIndex = (Number(page) - 1) * LIMIT; //get the starting index of every page
 		const total = await PostMessage.countDocuments();
 
@@ -33,7 +33,7 @@ export const getPostsBySearch = async (req, res) => {
 			$or: [{ title }, { tags: { $in: tags.split(',') } }],
 		});
 
-		res.status(200).json(posts);
+		res.status(200).json({ list: posts });
 	} catch (error) {
 		res.status(404).json({ message: error.message });
 	}
@@ -98,4 +98,16 @@ export const likePost = async (req, res) => {
 	const updatedPost = await PostMessage.findByIdAndUpdate(_id, post, { new: true });
 
 	res.json(updatedPost);
+};
+
+export const getPost = async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const post = await PostMessage.findById(id);
+
+		res.status(200).json(post);
+	} catch (error) {
+		res.status(404).json({ message: error.message });
+	}
 };

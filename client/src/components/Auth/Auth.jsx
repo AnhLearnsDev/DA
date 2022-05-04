@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Avatar, Button, Paper, Grid, Typography, Container } from '@material-ui/core';
+import {
+	Avatar,
+	Button,
+	Paper,
+	Grid,
+	Typography,
+	Container,
+	CircularProgress,
+} from '@material-ui/core';
 import { GoogleLogin } from 'react-google-login';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 
@@ -67,6 +75,7 @@ const Auth = () => {
 					<LockOutlinedIcon />
 				</Avatar>
 				<Typography variant='h5'>Sign {isSignUp ? 'Up' : 'In'}</Typography>
+				{/* <CircularProgress /> */}
 				<form className={classes.form} onSubmit={handleSubmit}>
 					<Grid container spacing={2}>
 						{isSignUp && (
