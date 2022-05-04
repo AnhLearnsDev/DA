@@ -14,14 +14,14 @@ const slice = createSlice({
 		},
 		postUpdated: (posts, action) => {
 			const index = posts.list.findIndex((post) => post._id === action.payload._id);
-			posts[index] = action.payload;
+			posts.list[index] = action.payload;
 		},
 		postDeleted: (posts, action) => {
 			return posts.list.filter((post) => post._id !== action.payload._id);
 		},
 		postLiked: (posts, action) => {
 			const index = posts.list.findIndex((post) => post._id === action.payload._id);
-			posts[index] = action.payload;
+			posts.list[index] = action.payload;
 		},
 		postsReceived: (posts, action) => {
 			return action.payload;
