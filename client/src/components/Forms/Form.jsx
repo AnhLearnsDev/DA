@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Paper, TextField, Typography, Button } from '@material-ui/core';
 import FileBase from 'react-file-base64';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 
 import useStyles from './styles';
 import { createPost, updatePost } from '../../store/posts';
@@ -15,16 +16,24 @@ const emptyPost = {
 
 const Form = ({ currentId, setCurrentId }) => {
 	const [postData, setPostData] = useState(emptyPost);
+
+	// const posts = useSelector((state) => state.posts.list);
 	const post = useSelector((state) =>
-		currentId ? state.posts.find((post) => post._id === currentId) : null
+		currentId ? state.posts.list.find((post) => post._id === currentId) : null
 	);
+
 	const classes = useStyles();
 	const dispatch = useDispatch();
+	const history = useHistory();
 	const user = JSON.parse(localStorage.getItem('profile'));
 
 	useEffect(() => {
 		if (post) setPostData(post);
 	}, [post]);
+
+	// useEffect(() => {
+	// 	if (posts.length === 5) history.push('/posts/' + posts[posts.length - 1]._id);
+	// }, [posts]);
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

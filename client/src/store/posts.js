@@ -101,7 +101,7 @@ export const likePost = (id) =>
 		onSuccess: postLiked.type,
 	});
 
-export const getPostsBySearch = (searchQuery) => async (dispatch) => {
+export const getPostsBySearch = (searchQuery) => (dispatch) => {
 	dispatch(
 		apiCallBegan({
 			url: `${url}/search?searchQuery=${searchQuery.search || 'none'}&tags=${
