@@ -15,7 +15,7 @@ export const getPosts = async (req, res) => {
 			.skip(startIndex); //newest post first
 
 		res.status(200).json({
-			list: posts,
+			posts,
 			currentPage: Number(page),
 			numberOfPages: Math.ceil(total / LIMIT),
 		});
@@ -33,7 +33,7 @@ export const getPostsBySearch = async (req, res) => {
 			$or: [{ title }, { tags: { $in: tags.split(',') } }],
 		});
 
-		res.status(200).json({ list: posts });
+		res.status(200).json(posts);
 	} catch (error) {
 		res.status(404).json({ message: error.message });
 	}
@@ -107,6 +107,21 @@ export const getPost = async (req, res) => {
 		const post = await PostMessage.findById(id);
 
 		res.status(200).json(post);
+	} catch (error) {
+		res.status(404).json({ message: error.message });
+	}
+};
+
+export const commentPost = async (req, res) => {
+	if (!req.userId) return res.json({ message: 'Unauthenticated' });
+	const { id } = req.params;
+	const { comment } = req.body;
+
+	try {
+		const post = await PostMessage.findById(id);
+		post.comments.push(comment);
+		const updatedPost = await PostMessage.findByIdAndUpdate(id, post, { new: true });
+		res.status(200).json(updatedPost);
 	} catch (error) {
 		res.status(404).json({ message: error.message });
 	}

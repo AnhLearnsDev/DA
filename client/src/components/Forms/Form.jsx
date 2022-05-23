@@ -17,29 +17,28 @@ const emptyPost = {
 const Form = ({ currentId, setCurrentId }) => {
 	const [postData, setPostData] = useState(emptyPost);
 
-	// const posts = useSelector((state) => state.posts.list);
-	const post = useSelector((state) =>
+	const postUpdating = useSelector((state) =>
 		currentId ? state.posts.list.find((post) => post._id === currentId) : null
 	);
 
 	const classes = useStyles();
 	const dispatch = useDispatch();
 	const history = useHistory();
+
 	const user = JSON.parse(localStorage.getItem('profile'));
 
 	useEffect(() => {
-		if (post) setPostData(post);
-	}, [post]);
-
-	// useEffect(() => {
-	// 	if (posts.length === 5) history.push('/posts/' + posts[posts.length - 1]._id);
-	// }, [posts]);
+		if (postUpdating) setPostData(postUpdating);
+	}, [postUpdating]);
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
 
 		if (currentId) dispatch(updatePost(currentId, postData));
-		else dispatch(createPost({ ...postData, name: user?.result?.name }));
+		else
+			dispatch(createPost({ ...postData, name: user?.result?.name })).then((res) =>
+				history.push('/posts/' + res._id)
+			);
 
 		clear();
 	};
@@ -116,7 +115,7 @@ const Form = ({ currentId, setCurrentId }) => {
 					type='submit'
 					fullWidth
 				>
-					Submit
+					{currentId ? 'Update' : 'Submit'}
 				</Button>
 				<Button
 					className={classes.buttonSubmit}

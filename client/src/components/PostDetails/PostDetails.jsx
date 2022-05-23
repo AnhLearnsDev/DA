@@ -6,10 +6,14 @@ import { useParams, useHistory } from 'react-router-dom';
 
 import useStyles from './styles';
 import { getPost, getPostsBySearch } from '../../store/posts';
+import CommentSection from './CommentSection';
 
 const PostDetails = () => {
 	const classes = useStyles();
-	const { loading, list: posts, post } = useSelector((state) => state.posts);
+
+	const posts = useSelector((state) => state.posts);
+	const { postDetails: post, loading } = posts;
+
 	const dispatch = useDispatch();
 	const history = useHistory();
 	const { id } = useParams();
@@ -19,27 +23,29 @@ const PostDetails = () => {
 	}, [id]);
 
 	useEffect(() => {
-		dispatch(getPostsBySearch({ search: 'none', tags: post?.tags.join(',') }));
+		if (post)
+			dispatch(getPostsBySearch({ search: 'none', tags: post?.tags.join(',') }));
 	}, [post]);
 
+	const Loading = () => (
+		<Paper elevation={6} className={classes.loadingPaper}>
+			<CircularProgress size='7em' />
+		</Paper>
+	);
+
 	if (!post) return null;
+	const { title, tags, message, createdAt, selectedFile } = post;
 
-	if (loading) {
-		return (
-			<Paper elevation={6} className={classes.loadingPaper}>
-				<CircularProgress size='7em' />
-			</Paper>
-		);
-	}
+	const recommendedPosts = posts.list?.filter(({ _id }) => _id !== post._id);
 
-	const recommendedPosts = posts.filter(({ _id }) => _id !== post._id);
-
-	return (
+	return loading ? (
+		<Loading />
+	) : (
 		<Paper style={{ padding: '20px', borderRadius: '15px' }} elevation={6}>
 			<div className={classes.card}>
 				<div className={classes.section}>
 					<Typography variant='h3' component='h2'>
-						{post.title}
+						{title}
 					</Typography>
 					<Typography
 						gutterBottom
@@ -47,37 +53,34 @@ const PostDetails = () => {
 						color='textSecondary'
 						component='h2'
 					>
-						{post.tags.map((tag) => `#${tag} `)}
+						{tags.map((tag) => `#${tag} `)}
 					</Typography>
 					<Typography gutterBottom variant='body1' component='p'>
-						{post.message}
+						{message}
 					</Typography>
 					<Typography variant='h6'>Created by: {post.name}</Typography>
-					<Typography variant='body1'>
-						{moment(post.createdAt).fromNow()}
-					</Typography>
+					<Typography variant='body1'>{moment(createdAt).fromNow()}</Typography>
 					<Divider style={{ margin: '20px 0' }} />
 					<Typography variant='body1'>
 						<strong>Realtime Chat - coming soon!</strong>
 					</Typography>
 					<Divider style={{ margin: '20px 0' }} />
-					<Typography variant='body1'>
-						<strong>Comments - coming soon!</strong>
-					</Typography>
+					<CommentSection post={post} />
 					<Divider style={{ margin: '20px 0' }} />
 				</div>
 				<div className={classes.imageSection}>
 					<img
 						className={classes.media}
 						src={
-							post.selectedFile ||
+							selectedFile ||
 							'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'
 						}
-						alt={post.title}
+						alt={title}
 					/>
 				</div>
 			</div>
-			{recommendedPosts.length && (
+
+			{recommendedPosts?.length && (
 				<div className={classes.section}>
 					<Typography gutterBottom vairant='h5'>
 						You might also like:

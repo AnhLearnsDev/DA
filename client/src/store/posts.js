@@ -9,17 +9,16 @@ const slice = createSlice({
 		lastFetch: null,
 		currentPage: 1,
 		numberOfPages: null,
+		postDetails: null,
 	},
 	reducers: {
-		postCreated: (posts, action) => {
-			posts.list.push(action.payload);
-		},
 		postUpdated: (posts, action) => {
 			const index = posts.list.findIndex((post) => post._id === action.payload._id);
 			posts.list[index] = action.payload;
 		},
 		postDeleted: (posts, action) => {
-			return posts.list.filter((post) => post._id !== action.payload._id);
+			posts.list = posts.list.filter((post) => post._id !== action.payload._id);
+			posts.loading = false;
 		},
 		postLiked: (posts, action) => {
 			const index = posts.list.findIndex((post) => post._id === action.payload._id);
@@ -28,55 +27,62 @@ const slice = createSlice({
 		postsRequested: (posts, action) => {
 			posts.loading = true;
 		},
-		postRequestFailed: (posts, action) => {
+		postsRequestFailed: (posts, action) => {
 			posts.loading = false;
 		},
 		postsReceived: (posts, action) => {
-			return { ...posts, ...action.payload, loading: false };
+			const { posts: list, currentPage, numberOfPages } = action.payload;
+			posts.list = list;
+			posts.currentPage = currentPage;
+			posts.numberOfPages = numberOfPages;
+			posts.loading = false;
 		},
 		postsReceivedBySearch: (posts, action) => {
-			return { ...posts, ...action.payload, loading: false };
-		},
-		postReceived: (posts, action) => {
-			posts.post = action.payload;
+			posts.list = action.payload;
 			posts.loading = false;
+		},
+
+		postReceived: (posts, action) => {
+			posts.postDetails = action.payload;
+			posts.loading = false;
+		},
+		postCommented: (posts, action) => {
+			posts.comments = action.payload.comments;
 		},
 	},
 });
 
 export const {
-	postCreated,
 	postUpdated,
 	postDeleted,
 	postLiked,
 	postsRequested,
 	postsReceived,
 	postsReceivedBySearch,
-	postRequestFailed,
+	postsRequestFailed,
 	postReceived,
+	postCommented,
 } = slice.actions;
 export default slice.reducer;
 
 const url = '/posts';
 
 //action creator
-export const loadPosts = (page) => (dispatch, getState) => {
-	dispatch(
-		apiCallBegan({
-			url: `${url}?page=${page}`,
-			onStart: postsRequested.type,
-			onSuccess: postsReceived.type,
-			onError: postRequestFailed.type,
-		})
-	);
-};
+export const loadPosts = (page) =>
+	apiCallBegan({
+		url: `${url}?page=${page}`,
+		onStart: postsRequested.type,
+		onSuccess: postsReceived.type,
+		onError: postsRequestFailed.type,
+	});
 
-export const createPost = (newPost) =>
+export const createPost = (data) =>
 	apiCallBegan({
 		url,
 		method: 'post',
-		data: newPost,
-		onSuccess: postCreated.type,
+		data,
+		onStart: postsRequested.type,
+		onError: postsRequestFailed.type,
 	});
 
 export const updatePost = (id, updatedPost) =>
@@ -91,7 +97,16 @@ export const deletePost = (id) =>
 	apiCallBegan({
 		url: url + '/' + id,
 		method: 'delete',
+		// onStart: postsRequested.type,
 		onSuccess: postDeleted.type,
+	});
+
+export const commentPost = (comment, id) =>
+	apiCallBegan({
+		url: url + '/' + id + '/comment',
+		method: 'post',
+		data: { comment },
+		onSuccess: postCommented.type,
 	});
 
 export const likePost = (id) =>
@@ -101,23 +116,20 @@ export const likePost = (id) =>
 		onSuccess: postLiked.type,
 	});
 
-export const getPostsBySearch = (searchQuery) => (dispatch) => {
-	dispatch(
-		apiCallBegan({
-			url: `${url}/search?searchQuery=${searchQuery.search || 'none'}&tags=${
-				searchQuery.tags
-			}`,
-			onStart: postsRequested.type,
-			onSuccess: postsReceivedBySearch.type,
-			onError: postRequestFailed.type,
-		})
-	);
-};
+export const getPostsBySearch = (searchQuery) =>
+	apiCallBegan({
+		url: `${url}/search?searchQuery=${searchQuery.search || 'none'}&tags=${
+			searchQuery.tags
+		}`,
+		onStart: postsRequested.type,
+		onSuccess: postsReceivedBySearch.type,
+		onError: postsRequestFailed.type,
+	});
 
 export const getPost = (id) =>
 	apiCallBegan({
 		url: url + '/' + id,
 		onStart: postsRequested.type,
 		onSuccess: postReceived.type,
-		onError: postRequestFailed.type,
+		onError: postsRequestFailed.type,
 	});
